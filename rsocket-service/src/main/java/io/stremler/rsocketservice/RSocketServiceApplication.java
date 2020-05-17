@@ -4,10 +4,10 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 @SpringBootApplication
-public class RsocketServiceApplication {
+public class RSocketServiceApplication {
 
 	public static void main(String[] args) {
-		SpringApplication.run(RsocketServiceApplication.class, args);
+		SpringApplication.run(RSocketServiceApplication.class, args);
 	}
 
 }
