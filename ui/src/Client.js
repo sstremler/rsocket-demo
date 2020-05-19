@@ -1,6 +1,6 @@
 import {IdentitySerializer, JsonSerializer, RSocketClient, RSocketResumableTransport} from "rsocket-core";
 import RSocketWebSocketClient from "rsocket-websocket-client";
-import { v4 as uuidv4 } from 'uuid';
+import {v4 as uuidv4} from 'uuid';
 
 export class Client {
 
@@ -90,6 +90,17 @@ export class Client {
             data: message,
             metadata: String.fromCharCode('stream'.length) + 'stream'
         });
+    }
+
+    requestChannel(flow) {
+        console.log('client.js requestChannel')
+        return this.socket.requestChannel(flow.map(msg => {
+            console.log('flowable map');
+            return {
+                data: msg,
+                metadata: String.fromCharCode('channel'.length) + 'channel'
+            };
+        }));
     }
 
     disconnect() {

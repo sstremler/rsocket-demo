@@ -63,33 +63,34 @@ public class RSocketController {
                 .log();
     }
 
-    @MessageMapping("channel")
-    Flux<Message> channel(Flux<Message> settings) {
-//        connectedClients.offer(requester);
-//        messageFlux = Flux.merge(messageFlux, settings);
-        settings.subscribe(messageFluxSink::next);
-//        settings.subscribe(System.out::println);
-        return messageFlux;
-//        String threadName = Thread.currentThread().getName();
-//        log.info(threadName);
-
-//        return this.messageService.getMessages()
-//                .doOnTerminate(() -> {
-//                    this.log.info("Server error while streaming data to the client");
-//                    this.connectedClients.remove(requester);
-//                })
-//                .doOnCancel(() -> {
-//                    this.log.info("Connection closed by the client");
-//                    this.connectedClients.remove(requester);
-//                });
-    }
 //    @MessageMapping("channel")
-//    Flux<Message> channel(final Flux<Duration> settings) {
-//        log.info("Received channel request...");
-//        return settings
-//                .doOnNext(setting -> log.info("Channel frequency setting is {} second(s).", setting.getSeconds()))
-//                .doOnCancel(() -> log.warn("The client cancelled the channel."))
-//                .switchMap(setting -> Flux.interval(setting)
-//                        .map(index -> new Message(SERVER, CHANNEL, index)));
+//    Flux<Message> channel(Flux<Message> settings) {
+////        connectedClients.offer(requester);
+////        messageFlux = Flux.merge(messageFlux, settings);
+//        settings.subscribe(messageFluxSink::next);
+////        settings.subscribe(System.out::println);
+//        return messageFlux;
+////        String threadName = Thread.currentThread().getName();
+////        log.info(threadName);
+//
+////        return this.messageService.getMessages()
+////                .doOnTerminate(() -> {
+////                    this.log.info("Server error while streaming data to the client");
+////                    this.connectedClients.remove(requester);
+////                })
+////                .doOnCancel(() -> {
+////                    this.log.info("Connection closed by the client");
+////                    this.connectedClients.remove(requester);
+////                });
 //    }
+
+    @MessageMapping("channel")
+    Flux<Message> channel(final Flux<Message> settings) {
+        log.info("Received channel request...");
+        return settings
+                .doOnNext(setting -> log.info("Channel frequency setting is {} second(s).", 1))
+                .doOnCancel(() -> log.warn("The client cancelled the channel."))
+                .switchMap(setting -> Flux.interval(Duration.ofSeconds(1))
+                        .map(index -> new Message("server", "channel", index)));
+    }
 }
