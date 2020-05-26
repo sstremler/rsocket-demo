@@ -17,7 +17,7 @@ export class Client {
                 metadataMimeType: 'message/x.rsocket.routing.v0',
             },
             transport: new RSocketResumableTransport(
-                () => new RSocketWebSocketClient({url: 'ws://localhost:7000'}),
+                () => new RSocketWebSocketClient({url: 'ws://192.168.0.103:7000'}),
                 {
                     bufferSize: 100, // max number of sent & pending frames to buffer before failing
                     resumeToken: uuidv4(), // string to uniquely identify the session across connections
@@ -68,20 +68,9 @@ export class Client {
     }
 
     fireAndForget(message) {
-        return new Promise((resolve, reject) => {
-            this.socket.requestResponse({
-                data: message,
-                metadata: String.fromCharCode('fire-and-forget'.length) + 'fire-and-forget'
-            }).subscribe({
-                onComplete: msg => {
-                    console.log('fire-and-forget onComplete', msg.data);
-                    resolve(msg.data)
-                },
-                onError: error => {
-                    console.log('fire-and-forget onError', error);
-                    reject(error)
-                }
-            });
+        return this.socket.fireAndForget({
+            data: message,
+            metadata: String.fromCharCode('fire-and-forget'.length) + 'fire-and-forget'
         });
     }
 

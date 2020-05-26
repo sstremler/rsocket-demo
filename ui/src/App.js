@@ -36,18 +36,16 @@ class App extends Component {
 
     handleRequestResponse(event) {
         let msg = new Message('client', 'request');
-        console.log('request response, request', msg);
+        console.log('REQUEST RESPONSE, request', msg);
         this.client.requestResponse(msg).then(response => {
-            console.log('request-response response', response);
+            console.log('REQUEST RESPONSE, response', response);
         });
     }
 
     handleFireAndForget(event) {
         let msg = new Message('client', 'request');
-        console.log('request response, request', msg);
-        this.client.fireAndForget(msg).then(response => {
-            console.log('request-response response', response);
-        });
+        console.log('FIRE AND FORGET, message', msg);
+        this.client.fireAndForget(msg);
     }
 
     handleRequestStream(event) {
@@ -55,7 +53,7 @@ class App extends Component {
         let requestedMsg = 10;
         let processedMsg = 0;
         let msg = new Message('client', 'request');
-        console.log('request stream, request', msg);
+        console.log('REQUEST STREAM, request', msg);
 
         this.client.requestStream(msg).subscribe({
             onSubscribe: sub => {
@@ -90,12 +88,9 @@ class App extends Component {
         let cancelled = false;
 
         let flow = new Flowable(subscriber => {
-            console.log('flowable subscriber');
-
             this.clientStreamSubscription = subscriber;
             this.clientStreamSubscription.onSubscribe({
                 cancel: () => {
-                    console.log('flowable cancel');
                     cancelled = true;
                 },
                 request: n => {
@@ -103,20 +98,17 @@ class App extends Component {
 
                     let intervalID = setInterval(() => {
                         if (n > 0 && !cancelled) {
-                            console.log('flowable onNext index', index);
+                            console.log('flowable onNext index=', index);
                             subscriber.onNext(new Message('client', 'stream', index++));
                             n--;
                         } else {
                             console.log('flowable complete');
-                            // subscriber.onComplete();
                             window.clearInterval(intervalID);
                         }
                     }, 1000);
                 }
             });
         });
-        console.log('request channel, request', flow);
-
 
         this.client.requestChannel(flow).subscribe({
             onSubscribe: sub => {
@@ -136,7 +128,6 @@ class App extends Component {
                     this.serverStreamSubscription.request(requestedMsg);
                     processedMsg = 0;
                 }
-
             },
             onComplete: msg => {
                 console.log('REQUEST CHANNEL: completed')
@@ -145,9 +136,9 @@ class App extends Component {
     }
 
     handleCancelChannel(event) {
-        console.log('asdsd', this.clientStreamSubscription);
         this.clientStreamSubscription._subscription.cancel();
         this.serverStreamSubscription.cancel();
+        console.log('cancel channel');
     }
 
     render() {
