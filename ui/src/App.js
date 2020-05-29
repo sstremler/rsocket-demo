@@ -3,6 +3,8 @@ import './App.css';
 import {Client} from './Client';
 import {Message} from './Message';
 import {Flowable} from "rsocket-flowable";
+import TextField from "@material-ui/core/TextField";
+import Button from "@material-ui/core/Button";
 
 class App extends Component {
     clientStreamSubscription;
@@ -143,13 +145,47 @@ class App extends Component {
 
     render() {
         return (<div className="App">
-            <button onClick={this.handleConnect}>Connect</button>
-            <button onClick={this.handleDisconnect}>Disconnect</button>
-            <button onClick={this.handleRequestResponse}>Request response</button>
-            <button onClick={this.handleFireAndForget}>Fire and forget</button>
-            <button onClick={this.handleRequestStream}>Request stream</button>
-            <button onClick={this.handleRequestChannel}>Request channel</button>
-            <button onClick={this.handleCancelChannel}>Cancel channel</button>
+            <div className="address-container">
+                <TextField
+                    id="text-field-address"
+                    label="Address"
+                    defaultValue="ws://localhost:7000"
+                    placeholder="ws://localhost:7000"
+                    fullWidth
+                />
+                <Button variant="contained" color="primary" className="connect-btn" onClick={this.handleConnect}>Connect</Button>
+            </div>
+            <div className="btn-container">
+                {/*<button onClick={this.handleDisconnect}>Disconnect</button>*/}
+                <Button variant="contained" color="primary" onClick={this.handleRequestResponse}>Request response</Button>
+                <Button variant="contained" color="primary" onClick={this.handleFireAndForget}>Fire and forget</Button>
+                <Button variant="contained" color="primary" onClick={this.handleRequestStream}>Request stream</Button>
+                <Button variant="contained" color="primary" onClick={this.handleRequestChannel}>Request channel</Button>
+                {/*<Button variant="contained" color="primary" onClick={this.handleCancelChannel}>Cancel channel</Button>*/}
+            </div>
+            <div className="messages-container">
+                <TextField
+                    disabled
+                    id="text-field-sent"
+                    label="Sent"
+                    multiline
+                    rows={4}
+                    defaultValue=" "
+                    variant="outlined"
+                    fullWidth
+                />
+                <TextField
+                    disabled
+                    id="text-field-received"
+                    label="Received"
+                    multiline
+                    rows={4}
+                    defaultValue=" "
+                    variant="outlined"
+                    fullWidth
+                    className="text-field-received"
+                />
+            </div>
         </div>);
     }
 }

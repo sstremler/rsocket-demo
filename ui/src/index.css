@@ -11,3 +11,34 @@ code {
   font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
     monospace;
 }
+
+.App {
+  width: 900px;
+  margin: 60px auto 0 auto;
+}
+
+.App .connect-btn {
+  height: 36px;
+  margin-left: 30px;
+}
+
+.address-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.btn-container {
+  margin-top: 30px;
+  display: flex;
+  justify-content: space-between;
+}
+
+.messages-container {
+  margin-top: 30px;
+  display: flex;
+}
+
+.App .text-field-received {
+  margin-left: 30px;
+}
