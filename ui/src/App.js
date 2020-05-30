@@ -12,7 +12,10 @@ class App extends Component {
 
     constructor(props) {
         super(props);
-        this.client = new Client('ws://localhost:7000');
+        this.state = {
+            address: 'ws://localhost:7000',
+            log: ''
+        }
 
         this.handleConnect = this.handleConnect.bind(this);
         this.handleDisconnect = this.handleDisconnect.bind(this);
@@ -24,9 +27,9 @@ class App extends Component {
     }
 
     handleConnect(event) {
-        console.log('connect click');
+        this.client = new Client(this.state.address);
         this.client.connect().then(sub => {
-            console.log('connected');
+            this.appendLog('Connected to ' + this.state.address);
         });
     }
 
@@ -38,15 +41,15 @@ class App extends Component {
 
     handleRequestResponse(event) {
         let msg = new Message('client', 'request');
-        console.log('REQUEST RESPONSE, request', msg);
+        this.appendLog('REQUEST RESPONSE, request ' + msg.toString());
         this.client.requestResponse(msg).then(response => {
-            console.log('REQUEST RESPONSE, response', response);
+            this.appendLog('REQUEST RESPONSE, response ' + response.toString());
         });
     }
 
     handleFireAndForget(event) {
-        let msg = new Message('client', 'request');
-        console.log('FIRE AND FORGET, message', msg);
+        let msg = new Message('client', 'fire');
+        this.appendLog('FIRE AND FORGET, fire: ' + msg.toString());
         this.client.fireAndForget(msg);
     }
 
@@ -55,30 +58,31 @@ class App extends Component {
         let requestedMsg = 10;
         let processedMsg = 0;
         let msg = new Message('client', 'request');
-        console.log('REQUEST STREAM, request', msg);
+        this.appendLog('REQUEST STREAM, request: ' + msg.toString());
 
         this.client.requestStream(msg).subscribe({
             onSubscribe: sub => {
-                console.log('REQUEST STREAM: subscribed to stream');
+                this.appendLog('REQUEST STREAM: subscribed to stream');
                 subscription = sub;
+                this.appendLog('REQUEST STREAM: request '+ requestedMsg +' messages');
                 subscription.request(requestedMsg);
             },
             onError: error => {
-                console.log('REQUEST STREAM: error occurred', error);
+                this.appendLog('REQUEST STREAM: error occurred: ', JSON.stringify(error));
             },
             onNext: msg => {
-                console.log('REQUEST STREAM: new element arrived', msg.data);
+                this.appendLog('REQUEST STREAM: new message arrived: ', new Message().toObject(msg.data).toString());
                 processedMsg++;
 
                 if (processedMsg >= requestedMsg) {
-                    console.log('REQUEST STREAM: request new messages');
+                    this.appendLog('REQUEST STREAM: request '+ requestedMsg +' messages');
                     subscription.request(requestedMsg);
                     processedMsg = 0;
                 }
 
             },
             onComplete: msg => {
-                console.log('REQUEST STREAM: completed')
+                this.appendLog('REQUEST STREAM: stream completed');
             },
         });
     }
@@ -96,15 +100,15 @@ class App extends Component {
                     cancelled = true;
                 },
                 request: n => {
-                    console.log('flowable request n=', n);
+                    this.appendLog('REQUEST CHANNEL: OUTBOUND: '+ n +' message(s) was/were requested by the server');
 
                     let intervalID = setInterval(() => {
                         if (n > 0 && !cancelled) {
-                            console.log('flowable onNext index=', index);
-                            subscriber.onNext(new Message('client', 'stream', index++));
+                            const msg = new Message('client', 'stream', index++);
+                            subscriber.onNext(msg);
+                            this.appendLog('REQUEST CHANNEL: OUTBOUND: new message sent: ' + msg.toString());
                             n--;
                         } else {
-                            console.log('flowable complete');
                             window.clearInterval(intervalID);
                         }
                     }, 1000);
@@ -114,25 +118,26 @@ class App extends Component {
 
         this.client.requestChannel(flow).subscribe({
             onSubscribe: sub => {
-                console.log('REQUEST CHANNEL: subscribed to stream');
+                this.appendLog('REQUEST CHANNEL: INBOUND: subscribed to stream');
                 this.serverStreamSubscription = sub;
                 this.serverStreamSubscription.request(requestedMsg);
+                this.appendLog('REQUEST CHANNEL: INBOUND: '+ requestedMsg +' message(s) was/were requested by the client');
             },
             onError: error => {
-                console.log('REQUEST CHANNEL: error occurred', error);
+                this.appendLog('REQUEST CHANNEL: INBOUND: error occurred:' + JSON.stringify(error));
             },
             onNext: msg => {
-                console.log('REQUEST CHANNEL: new element arrived', msg.data);
+                this.appendLog('REQUEST CHANNEL: INBOUND: new message arrived: ' + new Message().toObject(msg.data).toString());
                 processedMsg++;
 
                 if (processedMsg >= requestedMsg) {
-                    console.log('REQUEST CHANNEL: request new messages');
                     this.serverStreamSubscription.request(requestedMsg);
+                    this.appendLog('REQUEST CHANNEL: INBOUND: '+ requestedMsg +' message(s) was/were requested by the client');
                     processedMsg = 0;
                 }
             },
             onComplete: msg => {
-                console.log('REQUEST CHANNEL: completed')
+                console.log('REQUEST CHANNEL: INBOUND: stream completed')
             },
         });
     }
@@ -143,21 +148,38 @@ class App extends Component {
         console.log('cancel channel');
     }
 
+    handleAddressChange(event) {
+        this.setState({
+            address: event.target.value,
+        });
+    }
+
+    appendLog(log) {
+        this.setState(state => ({
+            log: state.log + log + '\n'
+        }))
+    }
+
     render() {
         return (<div className="App">
             <div className="address-container">
                 <TextField
                     id="text-field-address"
                     label="Address"
-                    defaultValue="ws://localhost:7000"
+                    value={this.state.address}
+                    onChange={this.handleAddressChange}
                     placeholder="ws://localhost:7000"
                     fullWidth
+                    autoFocus
+                    required
                 />
-                <Button variant="contained" color="primary" className="connect-btn" onClick={this.handleConnect}>Connect</Button>
+                <Button variant="contained" color="primary" className="connect-btn"
+                        onClick={this.handleConnect}>Connect</Button>
             </div>
             <div className="btn-container">
                 {/*<button onClick={this.handleDisconnect}>Disconnect</button>*/}
-                <Button variant="contained" color="primary" onClick={this.handleRequestResponse}>Request response</Button>
+                <Button variant="contained" color="primary" onClick={this.handleRequestResponse}>Request
+                    response</Button>
                 <Button variant="contained" color="primary" onClick={this.handleFireAndForget}>Fire and forget</Button>
                 <Button variant="contained" color="primary" onClick={this.handleRequestStream}>Request stream</Button>
                 <Button variant="contained" color="primary" onClick={this.handleRequestChannel}>Request channel</Button>
@@ -167,23 +189,12 @@ class App extends Component {
                 <TextField
                     disabled
                     id="text-field-sent"
-                    label="Sent"
+                    label="Log"
                     multiline
-                    rows={4}
-                    defaultValue=" "
+                    rows={15}
+                    value={this.state.log}
                     variant="outlined"
                     fullWidth
-                />
-                <TextField
-                    disabled
-                    id="text-field-received"
-                    label="Received"
-                    multiline
-                    rows={4}
-                    defaultValue=" "
-                    variant="outlined"
-                    fullWidth
-                    className="text-field-received"
                 />
             </div>
         </div>);

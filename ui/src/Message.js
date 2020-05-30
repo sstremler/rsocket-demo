@@ -7,4 +7,16 @@ export class Message {
         this.created = created;
     }
 
+    toObject(data) {
+        Object.assign(this, data);
+        return this;
+    }
+
+    toString() {
+        return 'Message{origin='+ this.origin +
+            ', interaction='+ this.interaction +
+            ', index='+ this.index +
+            ', created='+ this.created +
+            '}';
+    }
 }

@@ -1,10 +1,11 @@
 import {IdentitySerializer, JsonSerializer, RSocketClient, RSocketResumableTransport} from "rsocket-core";
 import RSocketWebSocketClient from "rsocket-websocket-client";
 import {v4 as uuidv4} from 'uuid';
+import {Message} from "./Message";
 
 export class Client {
 
-    constructor() {
+    constructor(address) {
         this.client = new RSocketClient({
             serializers: {
                 data: JsonSerializer,
@@ -17,7 +18,7 @@ export class Client {
                 metadataMimeType: 'message/x.rsocket.routing.v0',
             },
             transport: new RSocketResumableTransport(
-                () => new RSocketWebSocketClient({url: 'ws://192.168.0.103:7000'}),
+                () => new RSocketWebSocketClient({url: address}),
                 {
                     bufferSize: 100, // max number of sent & pending frames to buffer before failing
                     resumeToken: uuidv4(), // string to uniquely identify the session across connections
@@ -29,7 +30,6 @@ export class Client {
         return new Promise((resolve, reject) => {
             this.client.connect().subscribe({
                 onComplete: s => {
-                    console.log('connect onComplete ', s);
                     this.socket = s;
                     this.socket.connectionStatus().subscribe(status => {
                         console.log(status);
@@ -38,11 +38,9 @@ export class Client {
                     resolve(this.socket);
                 },
                 onError: error => {
-                    console.log('connect onError ', error);
                     reject(error);
                 },
                 onSubscribe: cancel => {
-                    console.log('connect onSubscribe ', cancel);
                     this.cancel = cancel
                 }
             });
@@ -56,11 +54,9 @@ export class Client {
                 metadata: String.fromCharCode('request-response'.length) + 'request-response'
             }).subscribe({
                 onComplete: msg => {
-                    console.log('requestResponse onComplete', msg.data);
-                    resolve(msg.data)
+                    resolve(new Message().toObject(msg.data))
                 },
                 onError: error => {
-                    console.log('requestResponse onError', error);
                     reject(error)
                 }
             });
@@ -82,9 +78,7 @@ export class Client {
     }
 
     requestChannel(flow) {
-        console.log('client.js requestChannel')
         return this.socket.requestChannel(flow.map(msg => {
-            console.log('flowable map');
             return {
                 data: msg,
                 metadata: String.fromCharCode('channel'.length) + 'channel'
