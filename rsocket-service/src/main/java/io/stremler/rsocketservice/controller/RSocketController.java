@@ -40,6 +40,6 @@ public class RSocketController {
 
         return Flux.interval(Duration.ofSeconds(1))
                 .doOnCancel(() -> log.warn("The client cancelled the channel."))
-                .map(index -> new Message("server", "channel", index));
+                .map(index -> new Message("server", "stream", index));
     }
 }
